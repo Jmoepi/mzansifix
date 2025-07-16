@@ -35,7 +35,7 @@ export default function IssueDetailPage({ params }: { params: { id: string } }) 
     <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <Card className="shadow-lg">
+          <Card className="shadow-lg rounded-2xl">
             <CardHeader>
               <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4">
                  <div>
@@ -73,7 +73,7 @@ export default function IssueDetailPage({ params }: { params: { id: string } }) 
             </CardContent>
           </Card>
 
-          <Card className="mt-8 shadow-lg">
+          <Card className="mt-8 shadow-lg rounded-2xl">
             <CardHeader>
                 <CardTitle className="font-headline text-xl">Comments ({issue.comments})</CardTitle>
             </CardHeader>
@@ -96,7 +96,7 @@ export default function IssueDetailPage({ params }: { params: { id: string } }) 
         </div>
 
         <div className="lg:col-span-1 space-y-8">
-            <Card>
+            <Card className="rounded-2xl">
                  <CardHeader>
                      <CardTitle className="font-headline text-xl">Status History</CardTitle>
                  </CardHeader>
@@ -105,7 +105,7 @@ export default function IssueDetailPage({ params }: { params: { id: string } }) 
                  </CardContent>
             </Card>
 
-            <Card>
+            <Card className="rounded-2xl">
                 <CardHeader>
                     <CardTitle className="font-headline text-xl">Reported By</CardTitle>
                 </CardHeader>
@@ -121,7 +121,7 @@ export default function IssueDetailPage({ params }: { params: { id: string } }) 
                 </CardContent>
             </Card>
             
-            <Card>
+            <Card className="rounded-2xl">
                 <CardHeader>
                     <CardTitle className="font-headline text-xl">Community Actions</CardTitle>
                 </CardHeader>
