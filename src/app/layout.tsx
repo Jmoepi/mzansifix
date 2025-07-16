@@ -14,19 +14,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="antialiased">
+    <html lang="en" className="antialiased dark">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=PT+Sans:wght@400;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=PT+Sans:wght@400;700&display=swap"
           rel="stylesheet"
         />
       </head>
       <body className="font-body">
         <Toaster />
-        <Header />
-        <main className="min-h-[calc(100vh-4rem)]">{children}</main>
+        <div className="flex flex-col">
+           <Header />
+           <main className="pb-16 md:pb-0">{children}</main>
+        </div>
       </body>
     </html>
   );

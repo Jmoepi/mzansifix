@@ -5,26 +5,26 @@ import type { Issue } from '@/lib/types';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ThumbsUp, MessageSquare, MapPin, Calendar } from 'lucide-react';
+import { ThumbsUp, MessageSquare, MoreHorizontal, Send } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
 
 interface IssueCardProps {
   issue: Issue;
 }
 
 const statusColors = {
-  Open: 'bg-red-500 hover:bg-red-600',
-  Acknowledged: 'bg-yellow-500 hover:bg-yellow-600',
-  'In Progress': 'bg-blue-500 hover:bg-blue-600',
-  Resolved: 'bg-green-500 hover:bg-green-600',
+  Open: 'bg-red-500/20 text-red-400 border-red-500/30',
+  Acknowledged: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  'In Progress': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  Resolved: 'bg-green-500/20 text-green-400 border-green-500/30',
 };
+
 
 const IssueCard: FC<IssueCardProps> = ({ issue }) => {
   const timeAgo = formatDistanceToNow(new Date(issue.createdAt), {
@@ -32,67 +32,69 @@ const IssueCard: FC<IssueCardProps> = ({ issue }) => {
   });
 
   return (
-    <Link href={`/issues/${issue.id}`} className="group block" prefetch={false}>
-      <Card className="h-full transform transition-all duration-300 ease-in-out group-hover:scale-[1.02] group-hover:shadow-xl">
-        <CardHeader>
-          {issue.imageUrl && (
-            <div className="relative mb-4 h-48 w-full overflow-hidden rounded-lg">
-              <Image
-                src={issue.imageUrl}
-                alt={issue.title}
-                data-ai-hint={issue.aiHint}
-                fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-              />
+      <Card className="w-full border-0 sm:border rounded-none sm:rounded-2xl shadow-none sm:shadow-lg bg-transparent sm:bg-card">
+        <CardHeader className="p-3 sm:p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-10 w-10 border-2 border-primary">
+                <AvatarImage src={issue.reporter.avatarUrl} alt={issue.reporter.name} />
+                <AvatarFallback>{issue.reporter.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-semibold text-sm">{issue.reporter.name}</p>
+                <p className="text-xs text-muted-foreground">{issue.location}</p>
+              </div>
             </div>
-          )}
-          <div className="flex justify-between items-start gap-2">
-            <CardTitle className="font-headline text-lg leading-tight group-hover:text-primary">
-              {issue.title}
-            </CardTitle>
-            <Badge
-              className={`whitespace-nowrap text-primary-foreground ${
-                statusColors[issue.status]
-              }`}
-            >
-              {issue.status}
-            </Badge>
-          </div>
-          <div className="flex items-center gap-2 pt-2">
-            <Badge variant="secondary">{issue.category}</Badge>
+            <Button variant="ghost" size="icon">
+                <MoreHorizontal className="h-5 w-5" />
+            </Button>
           </div>
         </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4" />
-            <span>{issue.location}</span>
-          </div>
+        
+        {issue.imageUrl && (
+            <div className="relative w-full aspect-video">
+              <Link href={`/issues/${issue.id}`} className="block w-full h-full" prefetch={false}>
+                <Image
+                    src={issue.imageUrl}
+                    alt={issue.title}
+                    data-ai-hint={issue.aiHint}
+                    fill
+                    className="object-cover"
+                />
+              </Link>
+            </div>
+        )}
+
+        <CardContent className="p-3 sm:p-4">
+             <div className="flex gap-2 mb-2">
+                <Badge className={`whitespace-nowrap ${statusColors[issue.status]}`}>{issue.status}</Badge>
+                <Badge variant="secondary">{issue.category}</Badge>
+             </div>
+            <Link href={`/issues/${issue.id}`} prefetch={false}>
+                <h2 className="font-bold text-lg leading-tight hover:text-primary transition-colors">{issue.title}</h2>
+            </Link>
+             <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+               {issue.description}
+            </p>
         </CardContent>
-        <CardFooter className="flex justify-between text-xs text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Avatar className="h-6 w-6">
-              <AvatarImage src={issue.reporter.avatarUrl} alt={issue.reporter.name} />
-              <AvatarFallback>{issue.reporter.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <span>{issue.reporter.name}</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-              <ThumbsUp className="h-3 w-3" />
-              {issue.votes}
-            </div>
-            <div className="flex items-center gap-1">
-              <MessageSquare className="h-3 w-3" />
-              {issue.comments}
-            </div>
-            <div className="flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              <span>{timeAgo}</span>
-            </div>
-          </div>
+        <CardFooter className="flex flex-col items-start gap-3 p-3 sm:p-4">
+           <div className="flex items-center gap-4 text-sm">
+                <Button variant="ghost" size="sm" className="flex items-center gap-2 text-muted-foreground hover:text-primary p-1 h-auto">
+                    <ThumbsUp className="h-5 w-5" />
+                    <span>{issue.votes}</span>
+                </Button>
+                <Button variant="ghost" size="sm" className="flex items-center gap-2 text-muted-foreground hover:text-primary p-1 h-auto">
+                    <MessageSquare className="h-5 w-5" />
+                    <span>{issue.comments}</span>
+                </Button>
+                 <Button variant="ghost" size="sm" className="flex items-center gap-2 text-muted-foreground hover:text-primary p-1 h-auto">
+                    <Send className="h-5 w-5" />
+                    <span>Share</span>
+                </Button>
+           </div>
+            <p className="text-xs text-muted-foreground/80">{timeAgo}</p>
         </CardFooter>
       </Card>
-    </Link>
   );
 };
 
