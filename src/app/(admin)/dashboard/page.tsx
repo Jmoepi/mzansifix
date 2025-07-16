@@ -1,3 +1,4 @@
+'use client';
 
 import {
   Card,
@@ -12,10 +13,8 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
 } from '@/components/ui/chart';
-import { Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart as RechartsBarChart } from 'recharts';
 import type { ChartConfig } from '@/components/ui/chart';
 
 export default function DashboardPage() {
@@ -98,7 +97,7 @@ export default function DashboardPage() {
         <CardContent>
           <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
             <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData}>
+                <RechartsBarChart data={chartData}>
                 <CartesianGrid vertical={false} />
                 <XAxis
                     dataKey="category"
@@ -112,7 +111,7 @@ export default function DashboardPage() {
                     content={<ChartTooltipContent hideLabel />}
                 />
                 <Bar dataKey="count" fill="var(--color-count)" radius={8} />
-                </BarChart>
+                </RechartsBarChart>
             </ResponsiveContainer>
           </ChartContainer>
         </CardContent>
