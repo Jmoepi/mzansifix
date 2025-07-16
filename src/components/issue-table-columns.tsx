@@ -1,10 +1,9 @@
-
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
-import type { Issue } from '@/lib/types';
+import type { Issue, IssueStatus } from '@/lib/types';
 import { Button } from './ui/button';
-import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
+import { ArrowUpDown, MoreHorizontal, Check } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,19 +11,29 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
 } from './ui/dropdown-menu';
 import { Badge } from './ui/badge';
 import { Checkbox } from './ui/checkbox';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+
 
 const statusColors = {
     Open: 'bg-red-500/20 text-red-400 border-red-500/30',
     Acknowledged: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
     'In Progress': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
     Resolved: 'bg-green-500/20 text-green-400 border-green-500/30',
-  };
+};
 
-export const columns: ColumnDef<Issue>[] = [
+const availableStatuses: IssueStatus[] = ['Open', 'Acknowledged', 'In Progress', 'Resolved'];
+
+// We are turning columns into a function that accepts props
+// This allows us to pass down functions like `updateIssueStatus`
+export const columns = ({ updateIssueStatus }: { updateIssueStatus: (issueId: string, status: IssueStatus) => void }): ColumnDef<Issue>[] => [
   {
     id: 'select',
     header: ({ table }) => (
@@ -112,9 +121,26 @@ export const columns: ColumnDef<Issue>[] = [
             >
               Copy issue ID
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem>View issue details</DropdownMenuItem>
-            <DropdownMenuItem>Update status</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>Update status</DropdownMenuSubTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuSubContent>
+                  <DropdownMenuLabel>Set status to</DropdownMenuLabel>
+                  {availableStatuses.map((status) => (
+                     <DropdownMenuItem 
+                        key={status}
+                        onClick={() => updateIssueStatus(issue.id, status)}
+                        className="flex justify-between"
+                      >
+                       <span>{status}</span>
+                       {issue.status === status && <Check className="h-4 w-4" />}
+                     </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuPortal>
+            </DropdownMenuSub>
           </DropdownMenuContent>
         </DropdownMenu>
       );
