@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -46,15 +47,18 @@ const useAuthStore = create<AuthState>((set, get) => ({
       
       await updateProfile(user, { displayName: fullName });
 
-      await setDoc(doc(db, 'users', user.uid), {
+      const userProfileData = {
         uid: user.uid,
         displayName: fullName,
         email: user.email,
         createdAt: new Date().toISOString(),
-        role: 'user', // Default role
-      });
+        role: 'user' as const, // Default role
+      };
       
-      set({ user: { ...user, role: 'user'}, isLoading: false });
+      await setDoc(doc(db, 'users', user.uid), userProfileData);
+      
+      // Manually set the user and loading state after all operations are complete
+      set({ user: { ...user, role: userProfileData.role }, isLoading: false });
       return user;
     } catch (error) {
       set({ isLoading: false });
