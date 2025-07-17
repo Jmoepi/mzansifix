@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/header';
 import { AuthProvider } from '@/hooks/use-auth.tsx';
+import { ThemeProvider } from '@/hooks/use-theme';
 
 export const metadata: Metadata = {
   title: 'MzansiFix',
@@ -15,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="antialiased">
+    <html lang="en" className="antialiased" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -25,13 +26,15 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body">
-        <AuthProvider>
-          <Toaster />
-          <div className="flex flex-col">
-            <Header />
-            <main className="pb-16 md:pb-0">{children}</main>
-          </div>
-        </AuthProvider>
+        <ThemeProvider>
+            <AuthProvider>
+            <Toaster />
+            <div className="flex flex-col">
+                <Header />
+                <main className="pb-16 md:pb-0">{children}</main>
+            </div>
+            </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -2,15 +2,29 @@
 
 import Link from 'next/link';
 import { Button } from './ui/button';
-import { Compass, Home, User, PlusCircle } from 'lucide-react';
+import { Compass, Home, User, PlusCircle, Moon, Sun } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
+import { useTheme } from '@/hooks/use-theme';
 
 export default function Header() {
   const { user } = useAuth();
+  const { theme, setTheme } = useTheme();
+
+  const toggleTheme = () => {
+    setTheme(theme === 'light' ? 'dark' : 'light');
+  };
+
 
   return (
     <header className="fixed bottom-0 left-0 z-50 w-full border-t bg-background/80 backdrop-blur-sm md:sticky md:top-0 md:border-b md:border-t-0">
-      <div className="container flex h-16 items-center justify-center md:justify-end">
+      <div className="container flex h-16 items-center justify-between">
+        <div className="hidden md:block">
+           <Button variant="ghost" size="icon" onClick={toggleTheme}>
+              <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              <span className="sr-only">Toggle theme</span>
+            </Button>
+        </div>
         <nav className="flex w-full items-center justify-around gap-4 md:w-auto md:justify-end">
           <Button variant="ghost" size="icon" asChild className="flex flex-col h-auto p-2 gap-1 text-muted-foreground hover:text-primary">
             <Link href="/">
