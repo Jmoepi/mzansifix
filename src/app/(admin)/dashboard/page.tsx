@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -16,9 +17,11 @@ import {
 } from '@/components/ui/chart';
 import { Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart as RechartsBarChart } from 'recharts';
 import type { ChartConfig } from '@/components/ui/chart';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 export default function DashboardPage() {
-  const { issues } = useIssues();
+  const { issues, isLoading } = useIssues();
 
   const totalIssues = issues.length;
   const openIssues = issues.filter((i) => i.status === 'Open').length;
@@ -51,42 +54,85 @@ export default function DashboardPage() {
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Issues</CardTitle>
-            <BarChart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalIssues}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Open Issues</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{openIssues}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{inProgressIssues}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Resolved Issues</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{resolvedIssues}</div>
-          </CardContent>
-        </Card>
+        {isLoading ? (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Issues</CardTitle>
+                <BarChart className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-1/4" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Open Issues</CardTitle>
+                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                 <Skeleton className="h-8 w-1/4" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                 <Skeleton className="h-8 w-1/4" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Resolved Issues</CardTitle>
+                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                 <Skeleton className="h-8 w-1/4" />
+              </CardContent>
+            </Card>
+          </>
+        ) : (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Issues</CardTitle>
+                <BarChart className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totalIssues}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Open Issues</CardTitle>
+                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{openIssues}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{inProgressIssues}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Resolved Issues</CardTitle>
+                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{resolvedIssues}</div>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       <Card>
@@ -97,25 +143,29 @@ export default function DashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
-            <ResponsiveContainer width="100%" height={300}>
-                <RechartsBarChart data={chartData}>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                    dataKey="category"
-                    tickLine={false}
-                    tickMargin={10}
-                    axisLine={false}
+          {isLoading ? (
+             <Skeleton className="min-h-[300px] w-full" />
+          ) : (
+            <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
+                <ResponsiveContainer width="100%" height={300}>
+                    <RechartsBarChart data={chartData}>
+                    <CartesianGrid vertical={false} />
+                    <XAxis
+                        dataKey="category"
+                        tickLine={false}
+                        tickMargin={10}
+                        axisLine={false}
+                        />
+                    <YAxis />
+                    <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent hideLabel />}
                     />
-                <YAxis />
-                <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent hideLabel />}
-                />
-                <Bar dataKey="count" fill="var(--color-count)" radius={8} />
-                </RechartsBarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+                    <Bar dataKey="count" fill="var(--color-count)" radius={8} />
+                    </RechartsBarChart>
+                </ResponsiveContainer>
+            </ChartContainer>
+          )}
         </CardContent>
       </Card>
     </div>

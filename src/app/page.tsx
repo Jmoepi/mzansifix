@@ -6,9 +6,10 @@ import IssueCard from '@/components/issue-card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import Link from 'next/link';
+import IssueCardSkeleton from '@/components/issue-card-skeleton';
 
 export default function Home() {
-  const { issues } = useIssues();
+  const { issues, isLoading } = useIssues();
 
   return (
     <div className="container mx-auto max-w-2xl p-4 sm:p-6 lg:p-8">
@@ -31,9 +32,17 @@ export default function Home() {
       </div>
 
       <div className="flex flex-col gap-8">
-        {issues.map((issue) => (
-          <IssueCard key={issue.id} issue={issue} />
-        ))}
+        {isLoading ? (
+          <>
+            <IssueCardSkeleton />
+            <IssueCardSkeleton />
+            <IssueCardSkeleton />
+          </>
+        ) : (
+          issues.map((issue) => (
+            <IssueCard key={issue.id} issue={issue} />
+          ))
+        )}
       </div>
     </div>
   );

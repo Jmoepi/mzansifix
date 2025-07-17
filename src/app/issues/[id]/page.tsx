@@ -3,7 +3,7 @@
 
 import { useIssues } from '@/hooks/use-issues';
 import Image from 'next/image';
-import { notFound, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -21,21 +21,23 @@ import { Textarea } from '@/components/ui/textarea';
 import { ThumbsUp, MessageSquare, MapPin, Calendar, ExternalLink } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Issue } from '@/lib/types';
+import IssueDetailSkeleton from '@/components/issue-detail-skeleton';
+
 
 export default function IssueDetailPage() {
   const params = useParams();
-  const { issues } = useIssues();
+  const { issues, isLoading } = useIssues();
   const [issue, setIssue] = useState<Issue | undefined>();
   
   useEffect(() => {
-    const foundIssue = issues.find((i) => i.id === params.id);
-    setIssue(foundIssue);
-  }, [issues, params.id]);
+    if (!isLoading) {
+      const foundIssue = issues.find((i) => i.id === params.id);
+      setIssue(foundIssue);
+    }
+  }, [issues, params.id, isLoading]);
 
-
-  if (!issue) {
-    // You might want to show a loading state here
-    return <div>Loading...</div>;
+  if (isLoading || !issue) {
+    return <IssueDetailSkeleton />;
   }
   
   const statusColors = {
