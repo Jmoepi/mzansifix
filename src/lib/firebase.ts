@@ -1,7 +1,7 @@
 // src/lib/firebase.ts
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
-import { getFirestore, type Firestore, enableIndexedDbPersistence } from 'firebase/firestore';
+import { getFirestore, type Firestore, enableIndexedDbPersistence, initializeFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -17,28 +17,18 @@ let auth: Auth;
 let db: Firestore;
 
 // Check if all required environment variables are present
-if (firebaseConfig.apiKey) {
+if (firebaseConfig.apiKey && typeof window !== 'undefined') {
   // Initialize Firebase
   app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
   auth = getAuth(app);
-  db = getFirestore(app);
-  // Enable offline persistence
-  try {
-    enableIndexedDbPersistence(db);
-  } catch (err: any) {
-    if (err.code === 'failed-precondition') {
-      // This error happens if you have multiple tabs open and persistence is
-      // enabled in one of them. It's safe to ignore.
-      console.log('Firestore persistence failed-precondition. Multiple tabs open?');
-    } else if (err.code === 'unimplemented') {
-      // The current browser does not support all of the
-      // features required to enable persistence
-      console.log('Firestore persistence not available in this browser.');
-    }
-  }
-
+  // Initialize Firestore with offline persistence
+  db = initializeFirestore(app, {
+    localCache: enableIndexedDbPersistence({
+        forceOwnership: true
+    })
+  });
 } else {
-    // This is a fallback for when the env variables are not set
+    // This is a fallback for when the env variables are not set or during server-side rendering
     // The app will not have firebase functionality, but it will not crash.
     // We provide dummy objects to prevent the app from crashing on import
     app = {} as FirebaseApp;
