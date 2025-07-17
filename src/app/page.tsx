@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useIssues } from '@/lib/hooks/use-issues';
+import { useIssues } from '@/hooks/use-issues';
 import IssueCard from '@/components/issue-card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
@@ -38,4 +38,3 @@ export default function Home() {
     </div>
   );
 }
-
