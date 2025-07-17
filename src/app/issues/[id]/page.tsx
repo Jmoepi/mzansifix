@@ -1,6 +1,9 @@
-import { mockIssues } from '@/lib/data';
+
+'use client';
+
+import { useIssues } from '@/hooks/use-issues';
 import Image from 'next/image';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -16,12 +19,23 @@ import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ThumbsUp, MessageSquare, MapPin, Calendar, ExternalLink } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import type { Issue } from '@/lib/types';
 
-export default function IssueDetailPage({ params }: { params: { id: string } }) {
-  const issue = mockIssues.find((i) => i.id === params.id);
+export default function IssueDetailPage() {
+  const params = useParams();
+  const { issues } = useIssues();
+  const [issue, setIssue] = useState<Issue | undefined>();
+  
+  useEffect(() => {
+    const foundIssue = issues.find((i) => i.id === params.id);
+    setIssue(foundIssue);
+  }, [issues, params.id]);
+
 
   if (!issue) {
-    notFound();
+    // You might want to show a loading state here
+    return <div>Loading...</div>;
   }
   
   const statusColors = {

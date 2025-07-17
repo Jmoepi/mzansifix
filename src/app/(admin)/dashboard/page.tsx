@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { mockIssues } from '@/lib/data';
+import { useIssues } from '@/hooks/use-issues';
 import { BarChart, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import {
   ChartContainer,
@@ -18,16 +18,18 @@ import { Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart as Rech
 import type { ChartConfig } from '@/components/ui/chart';
 
 export default function DashboardPage() {
-  const totalIssues = mockIssues.length;
-  const openIssues = mockIssues.filter((i) => i.status === 'Open').length;
-  const resolvedIssues = mockIssues.filter(
+  const { issues } = useIssues();
+
+  const totalIssues = issues.length;
+  const openIssues = issues.filter((i) => i.status === 'Open').length;
+  const resolvedIssues = issues.filter(
     (i) => i.status === 'Resolved'
   ).length;
-  const inProgressIssues = mockIssues.filter(
+  const inProgressIssues = issues.filter(
     (i) => i.status === 'In Progress'
   ).length;
 
-  const issueDataByCategory = mockIssues.reduce((acc, issue) => {
+  const issueDataByCategory = issues.reduce((acc, issue) => {
     if (!acc[issue.category]) {
       acc[issue.category] = { category: issue.category, count: 0 };
     }

@@ -31,6 +31,8 @@ import type { IssueCategory } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Card } from './ui/card';
 import Image from 'next/image';
+import { useIssues } from '@/hooks/use-issues';
+import { useRouter } from 'next/navigation';
 
 const issueCategories: IssueCategory[] = [
   'Road Maintenance',
@@ -42,6 +44,9 @@ const issueCategories: IssueCategory[] = [
 ];
 
 const formSchema = z.object({
+  title: z.string().min(10, {
+    message: 'Title must be at least 10 characters.',
+  }),
   description: z.string().min(20, {
     message: 'Description must be at least 20 characters.',
   }),
@@ -58,6 +63,9 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function IssueForm() {
   const { toast } = useToast();
+  const router = useRouter();
+  const { addIssue } = useIssues();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isSuggesting, setIsSuggesting] = useState(false);
@@ -67,6 +75,7 @@ export default function IssueForm() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      title: '',
       description: '',
       location: '',
     },
@@ -111,17 +120,53 @@ export default function IssueForm() {
     }
   };
 
-  function onSubmit(values: FormValues) {
-    console.log(values);
-    toast({
-      title: 'Issue Reported!',
-      description: 'Thank you for your submission. Your issue has been logged.',
-    });
+  async function onSubmit(values: FormValues) {
+    setIsSubmitting(true);
+    try {
+      addIssue({
+        ...values,
+        imageUrl: photoDataUri.current ?? undefined,
+      });
+
+      toast({
+        title: 'Issue Reported!',
+        description: 'Thank you for your submission. Your issue has been logged.',
+      });
+      
+      form.reset();
+      router.push('/');
+
+    } catch (error) {
+       toast({
+          variant: 'destructive',
+          title: 'Submission Error',
+          description: 'There was a problem submitting your issue. Please try again.',
+        });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="e.g., Massive Pothole on Main St"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
         <FormField
           control={form.control}
           name="description"
@@ -218,7 +263,7 @@ export default function IssueForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a category for the issue" />
@@ -256,8 +301,8 @@ export default function IssueForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isPending} className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90">
-          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90">
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Submit Issue
         </Button>
       </form>

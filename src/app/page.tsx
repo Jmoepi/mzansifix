@@ -1,10 +1,15 @@
-import { mockIssues } from '@/lib/data';
+
+'use client';
+
+import { useIssues } from '@/lib/hooks/use-issues';
 import IssueCard from '@/components/issue-card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Home() {
+  const { issues } = useIssues();
+
   return (
     <div className="container mx-auto max-w-2xl p-4 sm:p-6 lg:p-8">
       <header className="mb-8 text-center">
@@ -26,10 +31,11 @@ export default function Home() {
       </div>
 
       <div className="flex flex-col gap-8">
-        {mockIssues.map((issue) => (
+        {issues.map((issue) => (
           <IssueCard key={issue.id} issue={issue} />
         ))}
       </div>
     </div>
   );
 }
+
