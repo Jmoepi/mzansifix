@@ -1,12 +1,23 @@
-
 // src/hooks/use-issues.ts
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import { mockIssues } from '@/lib/data';
-import type { Issue, IssueStatus, IssueCategory } from '@/lib/types';
+import { useEffect } from 'react';
 import { create } from 'zustand';
-import { usePathname } from 'next/navigation';
+import { db } from '@/lib/firebase';
+import {
+  collection,
+  query,
+  onSnapshot,
+  addDoc,
+  updateDoc,
+  doc,
+  serverTimestamp,
+  orderBy,
+  getDocs,
+  getDoc,
+} from 'firebase/firestore';
+import type { Issue, IssueStatus, IssueCategory } from '@/lib/types';
+import { useAuth } from './use-auth';
 
 interface NewIssueData {
   title: string;
@@ -14,67 +25,119 @@ interface NewIssueData {
   category: IssueCategory;
   location: string;
   imageUrl?: string;
+  aiHint?: string;
 }
 
 interface IssueStore {
-    issues: Issue[];
-    isLoading: boolean;
-    fetchIssues: () => Promise<void>;
-    addIssue: (newIssueData: NewIssueData) => void;
-    updateIssueStatus: (issueId: string, newStatus: IssueStatus) => void;
+  issues: Issue[];
+  isLoading: boolean;
+  addIssue: (newIssueData: NewIssueData) => Promise<void>;
+  updateIssueStatus: (issueId: string, newStatus: IssueStatus) => Promise<void>;
+  fetchIssues: (set: (fn: (state: IssueStore) => Partial<IssueStore>) => void) => () => void;
+  unsubscribe: (() => void) | null;
+  setUnsubscribe: (unsubscribe: (() => void) | null) => void;
 }
 
-
-// Using Zustand for state management to avoid prop drilling and simplify state sharing
-// This also persists state across component unmounts.
-const useIssueStore = create<IssueStore>((set) => ({
+// Using Zustand for state management
+const useIssueStore = create<IssueStore>((set, get) => ({
   issues: [],
   isLoading: true,
-  fetchIssues: async () => {
-    set({ isLoading: true });
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500)); 
-    set({ issues: mockIssues, isLoading: false });
-  },
-  addIssue: (newIssueData) => {
-    const newIssue: Issue = {
-        id: (Math.random() * 100000).toString(), // temporary unique ID
-        status: 'Open',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        reporter: {
-            name: 'Current User', // Placeholder
+  unsubscribe: null,
+  setUnsubscribe: (unsubscribe) => set({ unsubscribe }),
+  
+  fetchIssues: (set) => {
+    const q = query(collection(db, 'issues'), orderBy('createdAt', 'desc'));
+
+    const unsubscribe = onSnapshot(
+      q,
+      async (querySnapshot) => {
+        set({ isLoading: true });
+        const issuesPromises = querySnapshot.docs.map(async (doc) => {
+          const data = doc.data();
+          
+          let reporter = {
+            name: 'Anonymous',
             avatarUrl: 'https://placehold.co/40x40.png',
-        },
-        votes: 0,
-        comments: 0,
-        ...newIssueData,
-    };
-    set((state) => ({ issues: [newIssue, ...state.issues] }));
+          };
+
+          if (data.reporterId) {
+            const userDoc = await getDoc(doc(db, 'users', data.reporterId));
+            if (userDoc.exists()) {
+              const userData = userDoc.data();
+              reporter = {
+                name: userData.displayName || 'Anonymous',
+                avatarUrl: userData.photoURL || 'https://placehold.co/40x40.png',
+              };
+            }
+          }
+          
+          return {
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+            updatedAt: data.updatedAt?.toDate().toISOString() || new Date().toISOString(),
+            reporter,
+          } as Issue;
+        });
+
+        const issues = await Promise.all(issuesPromises);
+        set({ issues, isLoading: false });
+      },
+      (error) => {
+        console.error('Error fetching issues:', error);
+        set({ isLoading: false });
+      }
+    );
+    
+    // Return the unsubscribe function
+    return unsubscribe;
   },
-  updateIssueStatus: (issueId, newStatus) => {
-    set((state) => ({
-        issues: state.issues.map((issue) =>
-            issue.id === issueId ? { ...issue, status: newStatus, updatedAt: new Date().toISOString() } : issue
-        )
-    }));
-    // In a real app, you would also make an API call here to update the backend.
-    console.log(`Updated issue ${issueId} to status ${newStatus}`);
+
+  addIssue: async (newIssueData) => {
+    const { user } = useAuth.getState();
+    if (!user) throw new Error('User not authenticated');
+
+    const newIssue = {
+      ...newIssueData,
+      reporterId: user.uid,
+      status: 'Open' as IssueStatus,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      votes: 0,
+      comments: 0,
+    };
+    await addDoc(collection(db, 'issues'), newIssue);
+  },
+
+  updateIssueStatus: async (issueId, newStatus) => {
+    const issueRef = doc(db, 'issues', issueId);
+    await updateDoc(issueRef, {
+      status: newStatus,
+      updatedAt: serverTimestamp(),
+    });
   },
 }));
 
-
 // Custom hook that provides a simplified interface to the store
 export function useIssues() {
-  const { issues, isLoading, fetchIssues, addIssue, updateIssueStatus } = useIssueStore();
-  const pathname = usePathname();
+  const { issues, isLoading, addIssue, updateIssueStatus, fetchIssues, unsubscribe, setUnsubscribe } = useIssueStore();
+  const { user } = useAuth();
 
   useEffect(() => {
-    // Only fetch issues once on initial load
-    if (issues.length === 0) {
-      fetchIssues();
+    // If there is no active subscription, start one.
+    if (!unsubscribe && user) {
+       const unsub = fetchIssues(useIssueStore.setState);
+       setUnsubscribe(unsub);
     }
-  }, [fetchIssues, issues.length]);
+    
+    // Cleanup subscription on component unmount or when user logs out
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+        setUnsubscribe(null);
+      }
+    };
+  }, [fetchIssues, unsubscribe, setUnsubscribe, user]);
 
   return { issues, isLoading, addIssue, updateIssueStatus };
 }

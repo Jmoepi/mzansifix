@@ -19,6 +19,7 @@ export interface Issue {
   aiHint?: string;
   createdAt: string;
   updatedAt: string;
+  reporterId: string; // Changed from an object to just the ID
   reporter: {
     name:string;
     avatarUrl: string;

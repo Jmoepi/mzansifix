@@ -1,16 +1,21 @@
 {
   "rules": {
     "issues": {
-      ".read": "auth != null || data.child('isPublic').val() === true",
-      ".write": "auth != null || auth.token.admin === true",
+      ".read": "auth != null",
+      ".write": "auth != null",
       "$issueId": {
-        ".write": "auth != null && (data.child('reporterId').val() === auth.uid || auth.token.admin === true)"
+        // Anyone can read a single issue
+        ".read": "auth != null",
+        // Only the reporter or an admin can update an issue
+        ".update": "auth != null && (data.child('reporterId').val() === auth.uid || auth.token.role === 'admin')",
+        // Only authenticated users can create an issue
+        ".create": "auth != null"
       }
     },
     "users": {
       "$uid": {
-        ".read": "auth != null && ($uid === auth.uid || auth.token.admin === true)",
-        ".write": "auth != null && ($uid === auth.uid || auth.token.admin === true)"
+        ".read": "auth != null && ($uid === auth.uid || auth.token.role === 'admin')",
+        ".write": "auth != null && ($uid === auth.uid || auth.token.role === 'admin')"
       }
     },
     ".read": "false",

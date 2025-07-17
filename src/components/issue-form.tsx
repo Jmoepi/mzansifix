@@ -33,6 +33,7 @@ import { Card } from './ui/card';
 import Image from 'next/image';
 import { useIssues } from '@/hooks/use-issues';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/use-auth';
 
 const issueCategories: IssueCategory[] = [
   'Road Maintenance',
@@ -65,6 +66,7 @@ export default function IssueForm() {
   const { toast } = useToast();
   const router = useRouter();
   const { addIssue } = useIssues();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -121,9 +123,19 @@ export default function IssueForm() {
   };
 
   async function onSubmit(values: FormValues) {
+    if (!user) {
+      toast({
+        variant: 'destructive',
+        title: 'Not Authenticated',
+        description: 'You must be logged in to report an issue.',
+      });
+      router.push('/login');
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
-      addIssue({
+      await addIssue({
         ...values,
         imageUrl: photoDataUri.current ?? undefined,
       });
@@ -301,7 +313,7 @@ export default function IssueForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90">
+        <Button type="submit" disabled={isSubmitting || !user} className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90">
           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Submit Issue
         </Button>
