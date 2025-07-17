@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
@@ -20,6 +21,7 @@ import { Badge } from './ui/badge';
 import { Checkbox } from './ui/checkbox';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 
 const statusColors = {
@@ -70,7 +72,7 @@ export const columns = ({ updateIssueStatus }: { updateIssueStatus: (issueId: st
       );
     },
     cell: ({ row }) => {
-      return <div className="font-medium">{row.getValue('title')}</div>;
+      return <div className="font-medium line-clamp-2">{row.getValue('title')}</div>;
     }
   },
   {
@@ -78,12 +80,18 @@ export const columns = ({ updateIssueStatus }: { updateIssueStatus: (issueId: st
     header: 'Status',
     cell: ({ row }) => {
         const status = row.getValue('status') as Issue['status'];
-        return <Badge className={`${statusColors[status]}`}>{status}</Badge>
-    }
+        return <Badge className={cn('whitespace-nowrap', statusColors[status])}>{status}</Badge>
+    },
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id))
+    },
   },
   {
     accessorKey: 'category',
     header: 'Category',
+     filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id))
+    },
   },
   {
     accessorKey: 'reporter',
@@ -121,7 +129,9 @@ export const columns = ({ updateIssueStatus }: { updateIssueStatus: (issueId: st
             >
               Copy issue ID
             </DropdownMenuItem>
-            <DropdownMenuItem>View issue details</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+                <Link href={`/issues/${issue.id}`}>View issue details</Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>Update status</DropdownMenuSubTrigger>
