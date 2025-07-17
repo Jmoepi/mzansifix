@@ -11,7 +11,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -59,9 +58,9 @@ export default function SignupPage() {
       await signup(values.email, values.password, values.fullName);
       toast({
         title: 'Account Created',
-        description: 'Your account has been created successfully.',
+        description: 'Your account has been created successfully. Please log in.',
       });
-      router.push('/');
+      router.push('/login');
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -79,9 +78,9 @@ export default function SignupPage() {
       await signupWithGoogle();
       toast({
         title: 'Account Created',
-        description: 'Your account has been created successfully.',
+        description: 'Your account has been created successfully. Please log in.',
       });
-      router.push('/');
+      router.push('/login');
     } catch (error: any)
 {
       toast({
