@@ -16,7 +16,7 @@ export default function Header() {
             </Link>
           </Button>
           <Button variant="ghost" size="icon" asChild className="flex flex-col h-auto p-2 gap-1 text-muted-foreground hover:text-primary">
-            <Link href="/#">
+            <Link href="/explore">
               <Compass className="h-5 w-5" />
               <span className="text-xs">Explore</span>
             </Link>
