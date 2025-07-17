@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -11,6 +10,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup,
   type User,
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
@@ -25,6 +26,7 @@ interface AuthState {
   signup: (email: string, password: string, fullName: string) => Promise<User | null>;
   login: (email: string, password: string) => Promise<User | null>;
   logout: () => Promise<void>;
+  signupWithGoogle: () => Promise<User | null>;
 }
 
 const useAuthStore = create<AuthState>((set, get) => ({
@@ -76,6 +78,28 @@ const useAuthStore = create<AuthState>((set, get) => ({
     } catch (error) {
       set({ isLoading: false });
       console.error("Logout error:", error);
+      throw error;
+    }
+  },
+  signupWithGoogle: async () => {
+    set({ isLoading: true });
+    try {
+      const provider = new GoogleAuthProvider();
+      const userCredential = await signInWithPopup(auth, provider);
+      const user = userCredential.user;
+
+      await setDoc(doc(db, 'users', user.uid), {
+        uid: user.uid,
+        displayName: user.displayName,
+        email: user.email,
+        createdAt: new Date().toISOString(),
+      }, { merge: true }); // Use merge: true in case the user already exists via email/password
+
+      set({ user, isLoading: false });
+      return user;
+    } catch (error) {
+      set({ isLoading: false });
+      console.error("Google signup error:", error);
       throw error;
     }
   },
