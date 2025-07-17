@@ -25,7 +25,6 @@ if (firebaseConfig.apiKey) {
 } else {
     // This is a fallback for when the env variables are not set
     // The app will not have firebase functionality, but it will not crash.
-    console.error("Firebase config is missing. Please add your Firebase credentials to the .env file.");
     // We provide dummy objects to prevent the app from crashing on import
     app = {} as FirebaseApp;
     auth = {} as Auth;
