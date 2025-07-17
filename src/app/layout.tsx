@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/header';
+import { AuthProvider } from '@/hooks/use-auth';
 
 export const metadata: Metadata = {
   title: 'MzansiFix',
@@ -24,11 +25,13 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body">
-        <Toaster />
-        <div className="flex flex-col">
-           <Header />
-           <main className="pb-16 md:pb-0">{children}</main>
-        </div>
+        <AuthProvider>
+          <Toaster />
+          <div className="flex flex-col">
+            <Header />
+            <main className="pb-16 md:pb-0">{children}</main>
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );
