@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -315,7 +316,7 @@ export default function IssueForm() {
         />
         <Button type="submit" disabled={isSubmitting || !user} className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90">
           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Submit Issue
+          {user ? 'Submit Issue' : 'Please login to submit'}
         </Button>
       </form>
     </Form>
