@@ -18,10 +18,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ThumbsUp, MessageSquare, MapPin, Calendar, ExternalLink } from 'lucide-react';
+import { Smile, MessageSquare, MapPin, Calendar, ExternalLink } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Issue } from '@/lib/types';
 import IssueDetailSkeleton from '@/components/issue-detail-skeleton';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 
 export default function IssueDetailPage() {
@@ -46,6 +47,8 @@ export default function IssueDetailPage() {
     'In Progress': 'bg-blue-500',
     Resolved: 'bg-green-500',
   };
+
+  const emojis = ['👍', '❤️', '😂', '😮', '😢', '😠'];
 
   return (
     <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
@@ -142,9 +145,23 @@ export default function IssueDetailPage() {
                     <CardTitle className="font-headline text-xl">Community Actions</CardTitle>
                 </CardHeader>
                  <CardContent className="flex flex-col gap-3">
-                    <Button variant="outline" className="w-full justify-start gap-2">
-                        <ThumbsUp className="h-4 w-4" /> Vote to escalate ({issue.votes})
-                    </Button>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-start gap-2">
+                                <Smile className="h-4 w-4" /> React to this issue ({issue.votes})
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-1">
+                            <div className="flex gap-1">
+                            {emojis.map((emoji) => (
+                                <Button key={emoji} variant="ghost" size="icon" className="text-xl rounded-full">
+                                    {emoji}
+                                </Button>
+                            ))}
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+
                     <Button variant="outline" className="w-full justify-start gap-2">
                         <ExternalLink className="h-4 w-4" /> Share Issue
                     </Button>

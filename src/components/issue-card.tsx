@@ -9,14 +9,16 @@ import {
   CardHeader,
 } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ThumbsUp, MessageSquare, MoreHorizontal, Send } from 'lucide-react';
+import { MessageSquare, MoreHorizontal, Send, Smile } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
-interface IssueCardProps {
-  issue: Issue;
-}
 
 const statusColors = {
   Open: 'bg-red-500/20 text-red-400 border-red-500/30',
@@ -30,6 +32,8 @@ const IssueCard: FC<IssueCardProps> = ({ issue }) => {
   const timeAgo = formatDistanceToNow(new Date(issue.createdAt), {
     addSuffix: true,
   });
+
+  const emojis = ['👍', '❤️', '😂', '😮', '😢', '😠'];
 
   return (
       <Card className="w-full border-0 sm:border rounded-none sm:rounded-2xl shadow-none sm:shadow-lg bg-transparent sm:bg-card">
@@ -79,10 +83,24 @@ const IssueCard: FC<IssueCardProps> = ({ issue }) => {
         </CardContent>
         <CardFooter className="flex flex-col items-start gap-3 p-3 sm:p-4">
            <div className="flex items-center gap-4 text-sm">
-                <Button variant="ghost" size="sm" className="flex items-center gap-2 text-muted-foreground hover:text-primary p-1 h-auto">
-                    <ThumbsUp className="h-5 w-5" />
-                    <span>{issue.votes}</span>
-                </Button>
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button variant="ghost" size="sm" className="flex items-center gap-2 text-muted-foreground hover:text-primary p-1 h-auto">
+                            <Smile className="h-5 w-5" />
+                            <span>{issue.votes}</span>
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-1">
+                        <div className="flex gap-1">
+                        {emojis.map((emoji) => (
+                            <Button key={emoji} variant="ghost" size="icon" className="text-xl rounded-full">
+                                {emoji}
+                            </Button>
+                        ))}
+                        </div>
+                    </PopoverContent>
+                </Popover>
+                
                 <Button variant="ghost" size="sm" className="flex items-center gap-2 text-muted-foreground hover:text-primary p-1 h-auto">
                     <MessageSquare className="h-5 w-5" />
                     <span>{issue.comments}</span>
