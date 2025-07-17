@@ -83,17 +83,13 @@ const useAuthStore = create<AuthState>((set, get) => ({
   },
 }));
 
-
 /**
  * Custom hook to provide auth state and actions
  */
-export const useAuth = () => {
-    return useAuthStore();
-};
-
+export const useAuth = useAuthStore;
 
 /**
- * AuthProvider component to wrap the app
+ * AuthProvider component to wrap the app and initialize auth state
  */
 interface AuthProviderProps {
   children: ReactNode;
