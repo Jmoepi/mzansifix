@@ -17,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useState, useMemo } from 'react';
 import type { Issue, IssueCategory, IssueStatus } from '@/lib/types';
@@ -106,34 +105,32 @@ export default function ExplorePage() {
                <Separator />
                <div>
                   <Label className="text-base font-semibold">Category</Label>
-                  <RadioGroup value={selectedCategory} onValueChange={(value) => setSelectedCategory(value as IssueCategory | 'all')} className="mt-2 space-y-2">
-                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="all" id="cat-all" />
-                        <Label htmlFor="cat-all">All</Label>
-                     </div>
-                     {issueCategories.map(cat => (
-                         <div key={cat} className="flex items-center space-x-2">
-                            <RadioGroupItem value={cat} id={`cat-${cat.replace(/\s/g, '-')}`} />
-                            <Label htmlFor={`cat-${cat.replace(/\s/g, '-')}`}>{cat}</Label>
-                        </div>
-                     ))}
-                  </RadioGroup>
+                   <Select value={selectedCategory} onValueChange={(value) => setSelectedCategory(value as IssueCategory | 'all')}>
+                    <SelectTrigger className="w-full mt-2">
+                        <SelectValue placeholder="Filter by category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All</SelectItem>
+                        {issueCategories.map(cat => (
+                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        ))}
+                    </SelectContent>
+                 </Select>
                </div>
                <Separator />
                 <div>
                   <Label className="text-base font-semibold">Status</Label>
-                  <RadioGroup value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as IssueStatus | 'all')} className="mt-2 space-y-2">
-                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="all" id="status-all" />
-                        <Label htmlFor="status-all">All</Label>
-                     </div>
-                     {issueStatuses.map(status => (
-                         <div key={status} className="flex items-center space-x-2">
-                            <RadioGroupItem value={status} id={`status-${status.replace(/\s/g, '-')}`} />
-                            <Label htmlFor={`status-${status.replace(/\s/g, '-')}`}>{status}</Label>
-                        </div>
-                     ))}
-                  </RadioGroup>
+                  <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as IssueStatus | 'all')}>
+                    <SelectTrigger className="w-full mt-2">
+                        <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All</SelectItem>
+                        {issueStatuses.map(status => (
+                            <SelectItem key={status} value={status}>{status}</SelectItem>
+                        ))}
+                    </SelectContent>
+                 </Select>
                </div>
             </CardContent>
           </Card>
