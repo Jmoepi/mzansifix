@@ -1,7 +1,7 @@
 // src/lib/firebase.ts
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
-import { getFirestore, type Firestore, enableIndexedDbPersistence, initializeFirestore } from 'firebase/firestore';
+import { getFirestore, type Firestore, enableIndexedDbPersistence } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -21,12 +21,19 @@ if (firebaseConfig.apiKey && typeof window !== 'undefined') {
   // Initialize Firebase
   app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
   auth = getAuth(app);
-  // Initialize Firestore with offline persistence
-  db = initializeFirestore(app, {
-    localCache: enableIndexedDbPersistence({
-        forceOwnership: true
-    })
-  });
+  db = getFirestore(app);
+  
+  // Enable offline persistence
+  try {
+    enableIndexedDbPersistence(db, { forceOwnership: true });
+  } catch (error) {
+    if (error instanceof Error && error.name === 'failed-precondition') {
+      console.warn('Firestore offline persistence could not be enabled because it is already active in another tab.');
+    } else {
+      console.error('Error enabling Firestore offline persistence:', error);
+    }
+  }
+
 } else {
     // This is a fallback for when the env variables are not set or during server-side rendering
     // The app will not have firebase functionality, but it will not crash.
