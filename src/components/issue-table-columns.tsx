@@ -94,10 +94,10 @@ export const columns = ({ updateIssueStatus }: { updateIssueStatus: (issueId: st
     },
   },
   {
-    accessorKey: 'reporter',
+    accessorKey: 'reporter.name',
     header: 'Reporter',
     cell: ({ row }) => {
-        const reporter = row.getValue('reporter') as Issue['reporter'];
+        const reporter = row.original.reporter;
         return <div>{reporter.name}</div>
     }
   },

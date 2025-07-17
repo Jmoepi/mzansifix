@@ -15,13 +15,17 @@ import {
   type User,
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { create } from 'zustand';
 
+interface UserProfile extends User {
+  role?: 'user' | 'admin';
+}
+
 interface AuthState {
-  user: User | null;
+  user: UserProfile | null;
   isLoading: boolean;
-  setUser: (user: User | null) => void;
+  setUser: (user: UserProfile | null) => void;
   setLoading: (loading: boolean) => void;
   signup: (email: string, password: string, fullName: string) => Promise<User | null>;
   login: (email: string, password: string) => Promise<User | null>;
@@ -47,9 +51,10 @@ const useAuthStore = create<AuthState>((set, get) => ({
         displayName: fullName,
         email: user.email,
         createdAt: new Date().toISOString(),
+        role: 'user', // Default role
       });
       
-      set({ user, isLoading: false });
+      set({ user: { ...user, role: 'user'}, isLoading: false });
       return user;
     } catch (error) {
       set({ isLoading: false });
@@ -62,7 +67,14 @@ const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      set({ user, isLoading: false });
+      
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      const userProfile: UserProfile = {
+          ...user,
+          role: userDoc.exists() ? userDoc.data().role : 'user'
+      };
+
+      set({ user: userProfile, isLoading: false });
       return user;
     } catch (error) {
        set({ isLoading: false });
@@ -88,14 +100,28 @@ const useAuthStore = create<AuthState>((set, get) => ({
       const userCredential = await signInWithPopup(auth, provider);
       const user = userCredential.user;
 
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        displayName: user.displayName,
-        email: user.email,
-        createdAt: new Date().toISOString(),
-      }, { merge: true }); // Use merge: true in case the user already exists via email/password
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
 
-      set({ user, isLoading: false });
+      let userRole: 'user' | 'admin' = 'user';
+      if (!userDoc.exists()) {
+        await setDoc(userDocRef, {
+            uid: user.uid,
+            displayName: user.displayName,
+            email: user.email,
+            createdAt: new Date().toISOString(),
+            role: 'user',
+        });
+      } else {
+        userRole = userDoc.data().role || 'user';
+      }
+
+      const userProfile: UserProfile = {
+          ...user,
+          role: userRole
+      };
+
+      set({ user: userProfile, isLoading: false });
       return user;
     } catch (error) {
       set({ isLoading: false });
@@ -115,8 +141,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { setUser, setLoading } = useAuthStore();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        const userProfile: UserProfile = {
+            ...user,
+            role: userDoc.exists() ? userDoc.data().role : 'user'
+        };
+        setUser(userProfile);
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
 
