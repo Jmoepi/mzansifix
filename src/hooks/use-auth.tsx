@@ -38,10 +38,8 @@ const useAuthStore = create<AuthState>((set, get) => ({
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      // Update profile
       await updateProfile(user, { displayName: fullName });
 
-      // Create user document in Firestore
       await setDoc(doc(db, 'users', user.uid), {
         uid: user.uid,
         displayName: fullName,
@@ -83,14 +81,8 @@ const useAuthStore = create<AuthState>((set, get) => ({
   },
 }));
 
-/**
- * Custom hook to provide auth state and actions
- */
 export const useAuth = useAuthStore;
 
-/**
- * AuthProvider component to wrap the app and initialize auth state
- */
 interface AuthProviderProps {
   children: ReactNode;
 }
