@@ -1,3 +1,4 @@
+
 // src/hooks/use-issues.ts
 'use client';
 
@@ -46,6 +47,12 @@ const useIssueStore = create<IssueStore>((set, get) => ({
   setUnsubscribe: (unsubscribe) => set({ unsubscribe }),
   
   fetchIssues: (set) => {
+    // Only fetch issues if Firestore is initialized (i.e., we are on the client side)
+    if (!db.app) {
+        set({ isLoading: false, issues: [] });
+        return () => {};
+    }
+      
     const q = query(collection(db, 'issues'), orderBy('createdAt', 'desc'));
 
     const unsubscribe = onSnapshot(
@@ -61,13 +68,18 @@ const useIssueStore = create<IssueStore>((set, get) => ({
           };
 
           if (data.reporterId) {
-            const userDoc = await getDoc(doc(db, 'users', data.reporterId));
-            if (userDoc.exists()) {
-              const userData = userDoc.data();
-              reporter = {
-                name: userData.displayName || 'Anonymous',
-                avatarUrl: userData.photoURL || 'https://placehold.co/40x40.png',
-              };
+            try {
+                const userDoc = await getDoc(doc(db, 'users', data.reporterId));
+                if (userDoc.exists()) {
+                  const userData = userDoc.data();
+                  reporter = {
+                    name: userData.displayName || 'Anonymous',
+                    avatarUrl: userData.photoURL || 'https://placehold.co/40x40.png',
+                  };
+                }
+            } catch (error) {
+                console.warn(`Could not fetch reporter info for issue ${doc.id}:`, error);
+                // If offline and the user doc isn't cached, it might fail. We'll just use the fallback.
             }
           }
           
@@ -124,20 +136,22 @@ export function useIssues() {
   const { user } = useAuth();
 
   useEffect(() => {
-    // If there is no active subscription, start one.
-    if (!unsubscribe && user) {
-       const unsub = fetchIssues(useIssueStore.setState);
+    let unsub: (()=>void) | null = null;
+    
+    // Only subscribe if the user is logged in and there is no active subscription.
+    if (user && !unsubscribe) {
+       unsub = fetchIssues(useIssueStore.setState);
        setUnsubscribe(unsub);
     }
     
     // Cleanup subscription on component unmount or when user logs out
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
+      if (unsub) {
+        unsub();
         setUnsubscribe(null);
       }
     };
-  }, [fetchIssues, unsubscribe, setUnsubscribe, user]);
+  }, [user, unsubscribe, fetchIssues, setUnsubscribe]);
 
   return { issues, isLoading, addIssue, updateIssueStatus };
 }

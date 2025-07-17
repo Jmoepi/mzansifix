@@ -1,3 +1,4 @@
+
 // src/lib/firebase.ts
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
@@ -16,32 +17,35 @@ let app: FirebaseApp;
 let auth: Auth;
 let db: Firestore;
 
-// Check if all required environment variables are present
-if (firebaseConfig.apiKey && typeof window !== 'undefined') {
-  // Initialize Firebase
+// This check is crucial for Next.js to avoid initializing Firebase on the server.
+if (typeof window !== 'undefined' && firebaseConfig.apiKey) {
   app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
   auth = getAuth(app);
   db = getFirestore(app);
-  
-  // Enable offline persistence
+
+  // Enable offline persistence. It's important to wrap this in a try-catch block
+  // as it can fail if another tab already has persistence enabled.
   try {
     enableIndexedDbPersistence(db, { forceOwnership: true });
-  } catch (error) {
-    if (error instanceof Error && error.name === 'failed-precondition') {
-      console.warn('Firestore offline persistence could not be enabled because it is already active in another tab.');
+  } catch (error: any) {
+    if (error.code === 'failed-precondition') {
+      console.warn(
+        'Firebase offline persistence could not be enabled. ' +
+        'This is likely because it is already active in another tab.'
+      );
+    } else if (error.code === 'unimplemented') {
+      console.warn(
+        'Firebase offline persistence is not available in this browser.'
+      );
     } else {
-      console.error('Error enabling Firestore offline persistence:', error);
+        console.error('Error enabling Firestore offline persistence:', error);
     }
   }
-
 } else {
-    // This is a fallback for when the env variables are not set or during server-side rendering
-    // The app will not have firebase functionality, but it will not crash.
-    // We provide dummy objects to prevent the app from crashing on import
-    app = {} as FirebaseApp;
-    auth = {} as Auth;
-    db = {} as Firestore;
+  // Provide dummy objects for server-side rendering to prevent errors
+  app = {} as FirebaseApp;
+  auth = {} as Auth;
+  db = {} as Firestore;
 }
-
 
 export { app, auth, db };
