@@ -1,0 +1,19 @@
+{
+  "rules": {
+    "issues": {
+      ".read": "auth != null || data.child('isPublic').val() === true",
+      ".write": "auth != null || auth.token.admin === true",
+      "$issueId": {
+        ".write": "auth != null && (data.child('reporterId').val() === auth.uid || auth.token.admin === true)"
+      }
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null && ($uid === auth.uid || auth.token.admin === true)",
+        ".write": "auth != null && ($uid === auth.uid || auth.token.admin === true)"
+      }
+    },
+    ".read": "false",
+    ".write": "false"
+  }
+}
