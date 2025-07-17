@@ -3,8 +3,6 @@ import Link from 'next/link';
 import {
   LayoutDashboard,
   ClipboardList,
-  Users,
-  Settings,
   Home,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -70,18 +68,6 @@ export default function AdminLayout({
                 </Link>
               </TooltipTrigger>
               <TooltipContent side="right">Issues</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  href="#"
-                  className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
-                >
-                  <Users className="h-5 w-5" />
-                  <span className="sr-only">Users</span>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="right">Users</TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </nav>
