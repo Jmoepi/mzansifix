@@ -17,22 +17,46 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+
+const signupSchema = z.object({
+  fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
+  email: z.string().email({ message: 'Please enter a valid email address.' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+});
+
+type SignupFormValues = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
   const { signup, signupWithGoogle } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const form = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      fullName: '',
+      email: '',
+      password: '',
+    },
+  });
+
+  const handleSignup = async (values: SignupFormValues) => {
     setIsLoading(true);
     try {
-      await signup(email, password, fullName);
+      await signup(values.email, values.password, values.fullName);
       toast({
         title: 'Account Created',
         description: 'Your account has been created successfully.',
@@ -80,43 +104,53 @@ export default function SignupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSignup} className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="full-name">Full Name</Label>
-              <Input
-                id="full-name"
-                placeholder="John Doe"
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSignup)} className="grid gap-4">
+              <FormField
+                control={form.control}
+                name="fullName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+               <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="m@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+               <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={isLoading || isGoogleLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create an account
-            </Button>
-          </form>
+              <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={isLoading || isGoogleLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Create an account
+              </Button>
+            </form>
+          </Form>
            <div className="relative my-4">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
