@@ -15,7 +15,7 @@ import {
   signInWithPopup,
   type User,
 } from 'firebase/auth';
-import { auth, db } from '@/lib/firebase';
+import { getFirebase } from '@/lib/firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { create } from 'zustand';
 
@@ -42,6 +42,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
   signup: async (email, password, fullName) => {
     set({ isLoading: true });
     try {
+      const { auth, db } = await getFirebase();
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
@@ -69,6 +70,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
   login: async (email, password) => {
     set({ isLoading: true });
     try {
+      const { auth, db } = await getFirebase();
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
@@ -89,6 +91,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
   logout: async () => {
     set({ isLoading: true });
     try {
+      const { auth } = await getFirebase();
       await signOut(auth);
       set({ user: null, isLoading: false });
     } catch (error) {
@@ -100,6 +103,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
   signupWithGoogle: async () => {
     set({ isLoading: true });
     try {
+      const { auth, db } = await getFirebase();
       const provider = new GoogleAuthProvider();
       const userCredential = await signInWithPopup(auth, provider);
       const user = userCredential.user;
@@ -145,21 +149,32 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { setUser, setLoading } = useAuthStore();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        const userProfile: UserProfile = {
-            ...user,
-            role: userDoc.exists() ? userDoc.data().role : 'user'
-        };
-        setUser(userProfile);
-      } else {
-        setUser(null);
-      }
-      setLoading(false);
+    let unsubscribe: (() => void) | undefined;
+    
+    getFirebase().then(({ auth, db }) => {
+        unsubscribe = onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            const userProfile: UserProfile = {
+                ...user,
+                role: userDoc.exists() ? userDoc.data().role : 'user'
+            };
+            setUser(userProfile);
+        } else {
+            setUser(null);
+        }
+        setLoading(false);
+        });
+    }).catch(error => {
+        console.error("Firebase initialization failed in AuthProvider:", error);
+        setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, [setUser, setLoading]);
 
   return <>{children}</>;

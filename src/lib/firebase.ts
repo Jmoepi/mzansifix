@@ -1,4 +1,3 @@
-
 // src/lib/firebase.ts
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
@@ -13,39 +12,42 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-let app: FirebaseApp;
-let auth: Auth;
-let db: Firestore;
+// A promise that resolves with the Firebase services once they are initialized.
+let firebasePromise: Promise<{ app: FirebaseApp; auth: Auth; db: Firestore }> | null = null;
 
-// This check is crucial for Next.js to avoid initializing Firebase on the server.
-if (typeof window !== 'undefined' && firebaseConfig.apiKey) {
-  app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-  auth = getAuth(app);
-  db = getFirestore(app);
-
-  // Enable offline persistence. It's important to wrap this in a try-catch block
-  // as it can fail if another tab already has persistence enabled.
-  try {
-    enableIndexedDbPersistence(db, { forceOwnership: true });
-  } catch (error: any) {
-    if (error.code === 'failed-precondition') {
-      console.warn(
-        'Firebase offline persistence could not be enabled. ' +
-        'This is likely because it is already active in another tab.'
-      );
-    } else if (error.code === 'unimplemented') {
-      console.warn(
-        'Firebase offline persistence is not available in this browser.'
-      );
-    } else {
-        console.error('Error enabling Firestore offline persistence:', error);
-    }
+function getFirebase() {
+  if (firebasePromise) {
+    return firebasePromise;
   }
-} else {
-  // Provide dummy objects for server-side rendering to prevent errors
-  app = {} as FirebaseApp;
-  auth = {} as Auth;
-  db = {} as Firestore;
+  
+  if (typeof window !== 'undefined' && firebaseConfig.apiKey) {
+    firebasePromise = new Promise((resolve) => {
+      const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      enableIndexedDbPersistence(db, { forceOwnership: true })
+        .then(() => {
+          console.log('Firestore offline persistence enabled.');
+        })
+        .catch((error: any) => {
+          if (error.code === 'failed-precondition') {
+            console.warn('Firestore offline persistence could not be enabled. This is likely because it is already active in another tab.');
+          } else if (error.code === 'unimplemented') {
+            console.warn('Firestore offline persistence is not available in this browser.');
+          } else {
+            console.error('Error enabling Firestore offline persistence:', error);
+          }
+        })
+        .finally(() => {
+          resolve({ app, auth, db });
+        });
+    });
+    return firebasePromise;
+  }
+  
+  // This should not happen in the browser, but as a fallback:
+  return Promise.reject(new Error("Firebase can only be initialized on the client."));
 }
 
-export { app, auth, db };
+export { getFirebase };
