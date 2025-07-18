@@ -21,27 +21,32 @@ function getFirebase() {
   }
   
   if (typeof window !== 'undefined' && firebaseConfig.apiKey) {
-    firebasePromise = new Promise((resolve) => {
-      const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-      const auth = getAuth(app);
-      const db = getFirestore(app);
+    firebasePromise = new Promise((resolve, reject) => {
+      try {
+        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-      enableIndexedDbPersistence(db, { forceOwnership: true })
-        .then(() => {
-          console.log('Firestore offline persistence enabled.');
-        })
-        .catch((error: any) => {
-          if (error.code === 'failed-precondition') {
-            console.warn('Firestore offline persistence could not be enabled. This is likely because it is already active in another tab.');
-          } else if (error.code === 'unimplemented') {
-            console.warn('Firestore offline persistence is not available in this browser.');
-          } else {
-            console.error('Error enabling Firestore offline persistence:', error);
-          }
-        })
-        .finally(() => {
-          resolve({ app, auth, db });
-        });
+        enableIndexedDbPersistence(db, { forceOwnership: true })
+          .then(() => {
+            console.log('Firestore offline persistence enabled.');
+            resolve({ app, auth, db });
+          })
+          .catch((error: any) => {
+            if (error.code === 'failed-precondition') {
+              console.warn('Firestore offline persistence could not be enabled. This is likely because it is already active in another tab. The app will continue without it.');
+              resolve({ app, auth, db }); // Resolve anyway, but without offline persistence
+            } else if (error.code === 'unimplemented') {
+              console.warn('Firestore offline persistence is not available in this browser. The app will continue without it.');
+               resolve({ app, auth, db }); // Resolve anyway, but without offline persistence
+            } else {
+              console.error('Error enabling Firestore offline persistence:', error);
+              reject(error);
+            }
+          });
+      } catch (error) {
+        reject(error);
+      }
     });
     return firebasePromise;
   }
