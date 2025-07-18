@@ -8,6 +8,11 @@ export type IssueCategory =
 
 export type IssueStatus = 'Open' | 'Acknowledged' | 'In Progress' | 'Resolved';
 
+export interface Reporter {
+    name: string;
+    avatarUrl: string;
+}
+
 export interface Issue {
   id: string;
   title: string;
@@ -20,10 +25,7 @@ export interface Issue {
   createdAt: string;
   updatedAt: string;
   reporterId: string; // Changed from an object to just the ID
-  reporter: {
-    name:string;
-    avatarUrl: string;
-  };
+  reporter: Reporter;
   votes: number;
   comments: number;
 }

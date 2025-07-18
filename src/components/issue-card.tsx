@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import React from 'react';
 import type { FC } from 'react';
 import type { Issue } from '@/lib/types';
 import {
@@ -27,6 +28,9 @@ const statusColors = {
   Resolved: 'bg-green-500/20 text-green-400 border-green-500/30',
 };
 
+interface IssueCardProps {
+    issue: Issue;
+}
 
 const IssueCard: FC<IssueCardProps> = ({ issue }) => {
   const timeAgo = formatDistanceToNow(new Date(issue.createdAt), {
@@ -116,4 +120,4 @@ const IssueCard: FC<IssueCardProps> = ({ issue }) => {
   );
 };
 
-export default IssueCard;
+export default React.memo(IssueCard);

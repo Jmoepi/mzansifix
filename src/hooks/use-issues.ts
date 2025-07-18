@@ -15,7 +15,7 @@ import {
   getDoc,
   type Unsubscribe,
 } from 'firebase/firestore';
-import type { Issue, IssueStatus, IssueCategory } from '@/lib/types';
+import type { Issue, IssueStatus, IssueCategory, Reporter } from '@/lib/types';
 import { useAuth } from './use-auth';
 
 interface NewIssueData {
@@ -35,6 +35,7 @@ interface IssueStore {
 }
 
 let unsubscribeFromIssues: Unsubscribe | null = null;
+const reporterCache = new Map<string, Reporter>();
 
 const useIssueStore = create<IssueStore>()((set) => ({
   issues: [],
@@ -85,24 +86,29 @@ async function initializeIssueFetching() {
         const issuesPromises = querySnapshot.docs.map(async (docSnapshot) => {
           const data = docSnapshot.data();
           
-          let reporter = {
+          let reporter: Reporter = {
             name: 'Anonymous',
             avatarUrl: 'https://placehold.co/40x40.png',
           };
 
           if (data.reporterId) {
-            try {
-                const userDocRef = doc(db, 'users', data.reporterId);
-                const userDoc = await getDoc(userDocRef);
-                if (userDoc.exists()) {
-                  const userData = userDoc.data();
-                  reporter = {
-                    name: userData.displayName || 'Anonymous',
-                    avatarUrl: userData.photoURL || 'https://placehold.co/40x40.png',
-                  };
+            if (reporterCache.has(data.reporterId)) {
+                reporter = reporterCache.get(data.reporterId)!;
+            } else {
+                try {
+                    const userDocRef = doc(db, 'users', data.reporterId);
+                    const userDoc = await getDoc(userDocRef);
+                    if (userDoc.exists()) {
+                      const userData = userDoc.data();
+                      reporter = {
+                        name: userData.displayName || 'Anonymous',
+                        avatarUrl: userData.photoURL || 'https://placehold.co/40x40.png',
+                      };
+                      reporterCache.set(data.reporterId, reporter);
+                    }
+                } catch (error) {
+                    console.warn(`Could not fetch reporter info for issue ${docSnapshot.id}:`, error);
                 }
-            } catch (error) {
-                console.warn(`Could not fetch reporter info for issue ${docSnapshot.id}:`, error);
             }
           }
           
@@ -134,6 +140,7 @@ function stopIssueFetching() {
         unsubscribeFromIssues();
         unsubscribeFromIssues = null;
     }
+    reporterCache.clear();
 }
 
 // Subscribe to auth changes to start/stop fetching issues

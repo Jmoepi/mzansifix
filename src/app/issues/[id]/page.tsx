@@ -76,7 +76,7 @@ export default function IssueDetailPage() {
             </CardHeader>
             <CardContent>
               {issue.imageUrl && (
-                <div className="relative mb-6 h-96 w-full overflow-hidden rounded-lg border">
+                <div className="relative mb-6 h-96 w-full overflow-hidden rounded-lg border bg-muted">
                   <Image
                     src={issue.imageUrl}
                     alt={issue.title}
