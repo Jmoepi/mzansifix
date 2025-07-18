@@ -58,9 +58,9 @@ export default function SignupPage() {
       await signup(values.email, values.password, values.fullName);
       toast({
         title: 'Account Created',
-        description: 'Your account has been created successfully. Please log in.',
+        description: 'Welcome to MzansiFix!',
       });
-      router.push('/login');
+      router.push('/');
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -78,9 +78,9 @@ export default function SignupPage() {
       await signupWithGoogle();
       toast({
         title: 'Account Created',
-        description: 'Your account has been created successfully. Please log in.',
+        description: 'Welcome to MzansiFix!',
       });
-      router.push('/login');
+      router.push('/');
     } catch (error: any)
 {
       toast({
